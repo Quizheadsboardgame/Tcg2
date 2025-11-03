@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCG Price Table Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; background: #f5f6fa; color: #333; }
+    h1 { text-align: center; font-weight: 600; color: #2c3e50; margin: 10px 0 20px 0; }
+    .logo { width: 100%; max-height: 150px; object-fit: contain; display: block; margin-bottom: 10px; }
+
+    iframe { width: 100%; height: 400px; border: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 30px; }
+
+    .table-container { width: 100%; overflow-x: auto; margin-bottom: 20px; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; background: #fff; }
+    th, td { padding: 12px; text-align: center; }
+    thead { background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); color: #fff; }
+    tbody tr:nth-child(even) { background-color: #f9f9f9; }
+    tbody tr:hover { background-color: #e1eaff; }
+    tfoot td { font-weight: 600; background-color: #ecf0f1; }
+
+    input { width: 90%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; text-align: center; font-size: 1rem; transition: border-color 0.2s; }
+    input:focus { outline: none; border-color: #2575fc; box-shadow: 0 0 6px rgba(37,117,252,0.3); }
+
+    .add-btn, .howto-btn { padding: 12px 25px; font-size: 1rem; font-weight: 600; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: block; margin: 10px auto; }
+    .add-btn { background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); }
+    .add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+    .howto-btn { background: #2575fc; }
+    .howto-btn:hover { background: #6a11cb; }
+
+    .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.2s; z-index: 1000; }
+    .whatsapp-btn:hover { transform: scale(1.1); }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: #000; }
+
+    @media (max-width: 600px) { table { min-width: 500px; } }
+</style>
+</head>
+<body>
+
+<img src="https://i.postimg.cc/qRk9Mn2X/Untitled-design.png" alt="Logo" class="logo">
+
+<!-- How to Use Button -->
+<button class="howto-btn" onclick="openInstructions()">How to Use</button>
+
+<!-- Instructions Modal -->
+<div id="instructionsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeInstructions()">&times;</span>
+    <h2>How to Use</h2>
+    <p>1. Type in the card you are looking for into the PriceCharting website.</p>
+    <p>2. Once you have the correct card and price, enter the details in the rows below.</p>
+    <p>3. This will give you a total amount and if you wish to share this information, please use the WhatsApp logo to help you.</p>
+  </div>
+</div>
+
+<h1>TCG Price Calculator</h1>
+
+<iframe src="https://www.pricecharting.com/" id="priceChartingFrame"></iframe>
+
+<div class="table-container">
+    <table id="priceTable">
+        <thead>
+            <tr>
+                <th>Card Name</th>
+                <th>Value (£)</th>
+                <th>Trade in Value</th>
+                <th>Cash Trade In</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" placeholder="Enter card name"></td>
+                <td><input type="number" placeholder="Enter value" step="0.01" oninput="updatePrices(this)"></td>
+                <td class="trade"></td>
+                <td class="sell"></td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>Total</td>
+                <td id="totalValue">0.00</td>
+                <td id="totalTrade">0.00</td>
+                <td id="totalSell">0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<button class="add-btn" onclick="addRow()">Add Row</button>
+
+<!-- Floating WhatsApp Button -->
+<div class="whatsapp-btn" onclick="sendWhatsApp()">
+    <img src="https://i.postimg.cc/NFPMxQQb/IMG-1313.png" alt="WhatsApp" style="width: 100%; height: 100%; border-radius: 50%;">
+</div>
+
+<script>
+function updatePrices(input) {
+    const value = parseFloat(input.value);
+    const row = input.parentElement.parentElement;
+    const tradeCell = row.querySelector('.trade');
+    const sellCell = row.querySelector('.sell');
+
+    if (!isNaN(value) && value > 0) {
+        tradeCell.textContent = (value * 0.8).toFixed(2);
+        sellCell.textContent = (value * 0.7).toFixed(2);
+    } else {
+        tradeCell.textContent = '';
+        sellCell.textContent = '';
+    }
+    updateTotals();
+}
+
+function updateTotals() {
+    const rows = document.querySelectorAll('#priceTable tbody tr');
+    let totalValue = 0, totalTrade = 0, totalSell = 0;
+
+    rows.forEach(row => {
+        const value = parseFloat(row.querySelector('td:nth-child(2) input').value) || 0;
+        const trade = parseFloat(row.querySelector('.trade').textContent) || 0;
+        const sell = parseFloat(row.querySelector('.sell').textContent) || 0;
+
+        totalValue += value;
+        totalTrade += trade;
+        totalSell += sell;
+    });
+
+    document.getElementById('totalValue').textContent = totalValue.toFixed(2);
+    document.getElementById('totalTrade').textContent = totalTrade.toFixed(2);
+    document.getElementById('totalSell').textContent = totalSell.toFixed(2);
+}
+
+function addRow() {
+    const tbody = document.querySelector('#priceTable tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td><input type="text" placeholder="Enter card name"></td>
+        <td><input type="number" placeholder="Enter value" step="0.01" oninput="updatePrices(this)"></td>
+        <td class="trade"></td>
+        <td class="sell"></td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function sendWhatsApp() {
+    const rows = document.querySelectorAll('#priceTable tbody tr');
+    if(rows.length === 0) return alert('No data to send.');
+
+    let message = 'TCG Price Calculator Results:\n\n';
+    rows.forEach((row,index)=>{
+        const name = row.querySelector('td:nth-child(1) input').value || 'N/A';
+        const value = row.querySelector('td:nth-child(2) input').value || '0';
+        const trade = row.querySelector('.trade').textContent || '0';
+        const sell = row.querySelector('.sell').textContent || '0';
+        message += `${index+1}. ${name} - Value: £${value}, Trade in Value: £${trade}, Cash Trade In: £${sell}\n`;
+    });
+    const totalValue = document.getElementById('totalValue').textContent;
+    const totalTrade = document.getElementById('totalTrade').textContent;
+    const totalSell = document.getElementById('totalSell').textContent;
+    message += `\nTotals - Value: £${totalValue}, Trade in Value: £${totalTrade}, Cash Trade In: £${totalSell}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`,'_blank');
+}
+
+// Modal functions
+function openInstructions() { document.getElementById('instructionsModal').style.display='block'; }
+function closeInstructions() { document.getElementById('instructionsModal').style.display='none'; }
+window.onclick = function(event) {
+    const modal = document.getElementById('instructionsModal');
+    if(event.target == modal){ modal.style.display='none'; }
+}
+</script>
+
+</body>
+</html>
